@@ -1,212 +1,276 @@
-import React from 'react';
-
+import React, { useState } from 'react';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Trans } from '@lingui/macro';
-import { v4 as uuidv4 } from 'uuid';
 import Grid from '@mui/material/Grid';
-import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-
 import Checkbox from '../../../misc/Checkbox';
-import FormInlineButton from '../../../misc/FormInlineButton';
-import Select from '../../../misc/Select';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Link from '@mui/material/Link'; // Import Link from Material-UI
 
 const id = 'youtube';
 const name = 'YouTube Live';
 const version = '1.1';
 const stream_key_link = 'https://www.youtube.com/live_dashboard';
 const description = (
-	<Trans>
-		Transmits your video as an RTMP stream with the required key generated in YouTube Studio. You can find more information on setting up a live stream at
-		YouTube's{' '}
-		<Link color="secondary" target="_blank" href="https://creatoracademy.youtube.com/">
-			Creator Academy
-		</Link>
-		.
-	</Trans>
-);
-const image_copyright = (
-	<Trans>
-		More about YouTube's copyright{' '}
-		<Link color="secondary" target="_blank" href="https://www.youtube.com/howyoutubeworks/policies/copyright/#support-and-troubleshooting">
-			here
-		</Link>
-		.
-	</Trans>
+    <Trans>
+        Pilih channel untuk menargetkan live. Setting judul, deskripsi, tag, dll..{' '}
+        <Link color="secondary" target="_blank" href="https://creatoracademy.youtube.com/">
+            Creator Academy
+        </Link>
+        .
+    </Trans>
 );
 
 const author = {
-	creator: {
-		name: 'datarhei',
-		link: 'https://github.com/datarhei',
-	},
-	maintainer: {
-		name: 'datarhei',
-		link: 'https://github.com/datarhei',
-	},
+    creator: {
+        name: 'datarhei',
+        link: 'https://github.com/datarhei',
+    },
+    maintainer: {
+        name: 'datarhei',
+        link: 'https://github.com/datarhei',
+    },
 };
 
 const category = 'platform';
 const requires = {
-	protocols: ['rtmps', 'https'],
-	formats: ['flv', 'hls'],
-	codecs: {
-		audio: ['aac', 'mp3'],
-		video: ['h264', 'hevc', 'av1'],
-	},
+    protocols: ['rtmps', 'https'],
+    formats: ['flv', 'hls'],
+    codecs: {
+        audio: ['aac', 'mp3'],
+        video: ['h264', 'hevc', 'av1'],
+    },
 };
 
 function ServiceIcon(props) {
-	return <FontAwesomeIcon icon={faYoutube} style={{ color: '#FF0000' }} {...props} />;
+    return <FontAwesomeIcon icon={faYoutube} style={{ color: '#FF0000' }} {...props} />;
 }
 
 function init(settings) {
-	const initSettings = {
-		mode: 'rtmps',
-		stream_key: '',
-		primary: true,
-		backup: false,
-		...settings,
-	};
+    const initSettings = {
+        mode: 'rtmps',
+        stream_key: '',
+        primary: true,
+        backup: false,
+        ...settings,
+    };
 
-	return initSettings;
+    return initSettings;
 }
 
 function Service(props) {
-	const settings = init(props.settings);
+    const settings = init(props.settings);
 
-	const handleChange = (what) => (event) => {
-		const value = event.target.value;
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState('');
+    const [thumbnail, setThumbnail] = useState(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState(null);
+    const [isLive, setIsLive] = useState(false);
+    const [onOffStatus, setOnOffStatus] = useState('off'); // State for Repeating On/Off menu
+	const [onOffStatusai, setOnOffStatusai] = useState('tidak'); // State for AI Content menu
+	const [selectedMinutes, setSelectedMinutes] = useState(1); // State for minutes dropdown
+	const [scheduleEnabled, setScheduleEnabled] = useState(false); // State for checkbox controlling schedule
 
-		if (['primary', 'backup'].includes(what)) {
-			settings[what] = !settings[what];
-		} else {
-			settings[what] = value;
-		}
+    const handleChange = (what) => (event) => {
+        const value = event.target.value;
 
-		const outputs = createOutput(settings);
+        if (['primary', 'backup'].includes(what)) {
+            settings[what] = !settings[what];
+        } else {
+            settings[what] = value;
+        }
 
-		props.onChange(outputs, settings);
-	};
+        const outputs = createOutput(settings);
+        props.onChange(outputs, settings);
+    };
 
-	const createOutput = (settings) => {
-		const outputs = [];
+    const handleThumbnailUpload = (e) => {
+        const file = e.target.files[0];
+        setThumbnail(file);
+        setThumbnailPreview(URL.createObjectURL(file)); // Generate preview URL
+    };
 
-		if (settings.stream_key.length === 0) {
-			return outputs;
-		}
+    const createOutput = (settings) => {
+        const outputs = [];
 
-		if (settings.mode === 'rtmps') {
-			let options = ['-f', 'flv'];
+        if (settings.stream_key.length === 0) {
+            return outputs;
+        }
 
-			if (props.skills.ffmpeg.version_major >= 6) {
-				const codecs = [];
-				if (props.skills.codecs.video.includes('hevc')) {
-					codecs.push('hvc1');
-				}
-				if (props.skills.codecs.video.includes('av1')) {
-					codecs.push('av01');
-				}
+        if (settings.mode === 'rtmps') {
+            let options = ['-f', 'flv'];
+            if (settings.primary) {
+                outputs.push({
+                    address: 'rtmps://a.rtmp.youtube.com/live2/' + settings.stream_key,
+                    options: options.slice(),
+                });
+            }
 
-				if (codecs.length !== 0) {
-					options.push('-rtmp_enhanced_codecs', codecs.join(','));
-				}
-			}
+            if (settings.backup) {
+                outputs.push({
+                    address: 'rtmps://b.rtmp.youtube.com/live2?backup=1/' + settings.stream_key,
+                    options: options.slice(),
+                });
+            }
+        }
+        return outputs;
+    };
 
-			// https://developers.google.com/youtube/v3/live/guides/rtmps-ingestion
-			if (settings.primary === true) {
-				outputs.push({
-					address: 'rtmps://a.rtmp.youtube.com/live2/' + settings.stream_key,
-					options: options.slice(),
-				});
-			}
+    return (
+        <Grid container spacing={2}>
+            {/* Channel selection */}
+            <Grid item xs={12}>
+                <FormControl fullWidth>
+                    <InputLabel>Pilih Channel</InputLabel>
+                    <Select value={settings.mode} onChange={handleChange('mode')}>
+                        <MenuItem value="rtmps">Channel A</MenuItem>
+                        <MenuItem value="hls">Channel B</MenuItem>
+                    </Select>
+                </FormControl>
+            </Grid>
 
-			if (settings.backup === true) {
-				outputs.push({
-					address: 'rtmps://b.rtmp.youtube.com/live2?backup=1/' + settings.stream_key,
-					options: options.slice(),
-				});
-			}
-		} else if (settings.mode === 'hls') {
-			// https://developers.google.com/youtube/v3/live/guides/hls-ingestion
-			const name = uuidv4();
-			const options = [
-				'-f',
-				'hls',
-				'-start_number',
-				'0',
-				'-hls_time',
-				'2',
-				'-hls_delete_threshold',
-				'3',
-				'-hls_list_size',
-				'5',
-				'-hls_flags',
-				'append_list',
-				'-hls_segment_type',
-				'mpegts',
-				'-http_persistent',
-				'1',
-				'-y',
-				'-method',
-				'PUT',
-			];
+            {/* Title, Description, Tags */}
+            <Grid item xs={12}>
+                <TextField
+                    label="Judul"
+                    variant="outlined"
+                    fullWidth
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <TextField
+                    label="Deskripsi"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <TextField
+                    label="Tag (pisahkan dengan koma)"
+                    variant="outlined"
+                    fullWidth
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                />
+            </Grid>
 
-			if (settings.primary === true) {
-				const base = `https://a.upload.youtube.com/http_upload_hls?cid=${settings.stream_key}&copy=0&file=`;
-				outputs.push({
-					address: base + name + '.m3u8',
-					options: [...options, '-hls_segment_filename', base + name + '_%d.ts'],
-				});
-			}
+            {/* AI Content Selector */}
+            <Grid item xs={12}>
+                <FormControl fullWidth>
+                    <InputLabel>Content AI</InputLabel>
+                    <Select value={onOffStatusai} onChange={(e) => setOnOffStatusai(e.target.value)}>
+                        <MenuItem value="on">YA</MenuItem>
+                        <MenuItem value="tidak">Tidak</MenuItem>
+                    </Select>
+                </FormControl>
+            </Grid>
 
-			if (settings.backup === true) {
-				const base = `https://b.upload.youtube.com/http_upload_hls?cid=${settings.stream_key}&copy=1&file=`;
-				outputs.push({
-					address: base + name + '.m3u8',
-					options: [...options, '-hls_segment_filename', base + name + '_%d.ts'],
-				});
-			}
-		}
+            {/* Thumbnail Upload */}
+            <Grid item xs={12}>
+                <Button variant="outlined" component="label" fullWidth>
+                    Upload Thumbnail
+                    <input type="file" hidden onChange={handleThumbnailUpload} />
+                </Button>
+                {thumbnailPreview && (
+                    <img
+                        src={thumbnailPreview}
+                        alt="Thumbnail Preview"
+                        style={{ width: '100%', height: 'auto', marginTop: '10px' }}
+                    />
+                )}
+            </Grid>
 
-		return outputs;
-	};
+            {/* Repeating and Menit Dropdown */}
+            <Grid container spacing={2} item xs={12}>
+                <Grid item xs={6}>
+                    <FormControl fullWidth>
+                        <InputLabel>Repeating</InputLabel>
+                        <Select
+                            value={onOffStatus}
+                            label="Repeating"
+                            onChange={(e) => setOnOffStatus(e.target.value)}
+                        >
+                            <MenuItem value="on">On</MenuItem>
+                            <MenuItem value="off">Off</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                    <FormControl fullWidth disabled={onOffStatus === 'off'}>
+                        <InputLabel>Menit</InputLabel>
+                        <Select
+                            value={selectedMinutes}
+                            onChange={(e) => setSelectedMinutes(e.target.value)}
+                        >
+                            <MenuItem value={1}>1 Menit</MenuItem>
+                            <MenuItem value={2}>5 Menit</MenuItem>
+                            <MenuItem value={3}>1 Jam</MenuItem>
+                            <MenuItem value={4}>5 Jam</MenuItem>
+                            <MenuItem value={5}>24 Jam</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+            </Grid>
 
-	const allowRTMPS = props.skills.protocols.includes('rtmps') && props.skills.formats.includes('flv');
-	const allowHLS = props.skills.protocols.includes('https') && props.skills.formats.includes('hls');
+            {/* Checkbox to enable/disable Schedule */}
+            <Grid item xs={12}>
+                <FormControl fullWidth>
+                    <Checkbox
+                        checked={scheduleEnabled}
+                        onChange={(e) => setScheduleEnabled(e.target.checked)}
+                        label="Enable Schedule"
+                    />
+                </FormControl>
+            </Grid>
 
-	return (
-		<Grid container spacing={2}>
-			<Grid item xs={12}>
-				<Select label={<Trans>Delivering mode</Trans>} value={settings.mode} onChange={handleChange('mode')}>
-					{allowRTMPS === true && <MenuItem value="rtmps">RTMP</MenuItem>}
-					{allowHLS === true && <MenuItem value="hls">HLS</MenuItem>}
-				</Select>
-			</Grid>
-			<Grid item xs={12} md={9}>
-				<TextField variant="outlined" fullWidth label={<Trans>Stream key</Trans>} value={settings.stream_key} onChange={handleChange('stream_key')} />
-			</Grid>
-			<Grid item xs={12} md={3}>
-				<FormInlineButton target="blank" href={stream_key_link} component="a">
-					<Trans>GET</Trans>
-				</FormInlineButton>
-			</Grid>
-			<Grid item xs={12}>
-				<Checkbox label={<Trans>Primary stream</Trans>} checked={settings.primary} onChange={handleChange('primary')} />
-				<Checkbox label={<Trans>Backup stream</Trans>} checked={settings.backup} onChange={handleChange('backup')} />
-			</Grid>
-		</Grid>
-	);
+            {/* Start and Stop Schedule */}
+            <Grid container spacing={2} item xs={12}>
+                <Grid item xs={6}>
+                    <TextField
+                        label="Set Start Schedule"
+                        type="datetime-local"
+                        fullWidth
+                        disabled={!scheduleEnabled} // Disable based on checkbox state
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField
+                        label="Set Stop Schedule"
+                        type="datetime-local"
+                        fullWidth
+                        disabled={!scheduleEnabled} // Disable based on checkbox state
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                </Grid>
+            </Grid>
+        </Grid>
+    );
 }
 
 Service.defaultProps = {
-	settings: {},
-	skills: {},
-	metadata: {},
-	streams: [],
-	onChange: function (output, settings) {},
+    settings: {},
+    skills: {},
+    metadata: {},
+    streams: [],
+    onChange: function (output, settings) {},
 };
 
-export { id, name, version, stream_key_link, description, image_copyright, author, category, requires, ServiceIcon as icon, Service as component };
+export { id, name, version, stream_key_link, description, author, category, requires, ServiceIcon as icon, Service as component };
