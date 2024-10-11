@@ -14,7 +14,7 @@ The user interface of the Restreamer for the connection to the [datarhei Core](h
 ### For the Restreamer interface:
 
 ```
-$ git clone github.com/datarhei/restreamer-ui
+$ git clone https://github.com/alfaputra27/RestreamerUi.git
 $ cd restreamer-ui
 $ yarn install
 $ npm run start
