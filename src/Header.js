@@ -31,6 +31,7 @@ import LanguageSelect from './misc/LanguageSelect';
 import Logo from './misc/Logo/rsLogo';
 import ModalContent from './misc/ModalContent';
 import PaperThumb from './misc/PaperThumb';
+import QueuePlayNextIcon from '@mui/icons-material/QueuePlayNext';
 
 const useStyles = makeStyles((theme) => ({
 	header: {
@@ -244,6 +245,9 @@ function HeaderMenu(props) {
 				<Fab className="headerFab" color="primary" onClick={props.onChannel}>
 					<VideocamIcon className="fabIcon" />
 				</Fab>
+				<Fab className="headerFab" color="primary" onClick={props.onYTChannel}>
+					<QueuePlayNextIcon className="fabIcon" />
+				</Fab>
 				<Fab className={props.hasUpdates ? 'headerFabHighlight' : 'headerFab'} color="primary" onClick={handleMenuOpen}>
 					<MenuOpenIcon className="fabIcon" />
 				</Fab>
@@ -310,6 +314,8 @@ function HeaderMenu(props) {
 				<AboutModal open={$about} onClose={() => setAbout(false)} />
 			</React.Fragment>
 		);
+
+		
 	} else {
 		return (
 			<React.Fragment>
