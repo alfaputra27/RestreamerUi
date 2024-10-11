@@ -508,6 +508,7 @@ export default function RestreamerUI(props) {
 							hasUpdates={$state.updates}
 							hasService={$state.service}
 							onChannel={handleChannelList}
+							onYTChannel={handleChannelList}
 							onPlayersite={handlePlayersite}
 							onSettings={handleSettings}
 							onLogout={handleLogout}
