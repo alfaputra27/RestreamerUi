@@ -75,6 +75,7 @@ function Service(props) {
     const [isLive, setIsLive] = useState(false);
     const [onOffStatus, setOnOffStatus] = useState('off'); // State for Repeating On/Off menu
 	const [onOffStatusai, setOnOffStatusai] = useState('tidak'); // State for AI Content menu
+    const [onOffStatusvisible, setOnOffStatusaivisible] = useState('publik'); // State for AI Content menu
 	const [selectedMinutes, setSelectedMinutes] = useState(1); // State for minutes dropdown
 	const [scheduleEnabled, setScheduleEnabled] = useState(false); // State for checkbox controlling schedule
 
@@ -136,6 +137,18 @@ function Service(props) {
                 </FormControl>
             </Grid>
 
+            <Grid item xs={12}>
+            <FormControl fullWidth>
+            <InputLabel>Pilih Stream Key</InputLabel>
+            <Select value={settings.stream_key} onChange={handleChange('stream_key')}>
+            <MenuItem value="stream_key">StreamKey A</MenuItem>
+            <MenuItem value="stream_key">StreamKey B</MenuItem>
+            <MenuItem value="stream_key">Buat Otomatis</MenuItem>
+				{/* <TextField variant="outlined" fullWidth label={<Trans>Stream key</Trans>} value={settings.stream_key} onChange={handleChange('stream_key')} /> */}
+                </Select>
+                </FormControl>
+            </Grid>
+
             {/* Title, Description, Tags */}
             <Grid item xs={12}>
                 <TextField
@@ -174,6 +187,17 @@ function Service(props) {
                     <Select value={onOffStatusai} onChange={(e) => setOnOffStatusai(e.target.value)}>
                         <MenuItem value="on">YA</MenuItem>
                         <MenuItem value="tidak">Tidak</MenuItem>
+                    </Select>
+                </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+                <FormControl fullWidth>
+                    <InputLabel>Visible</InputLabel>
+                    <Select value={onOffStatusvisible} onChange={(e) => setOnOffStatusaivisible(e.target.value)}>
+                        <MenuItem value="publik">Publik</MenuItem>
+                        <MenuItem value="privat">Private</MenuItem>
+                        <MenuItem value="tidakpublik">Tidak Publik</MenuItem>
                     </Select>
                 </FormControl>
             </Grid>
@@ -261,6 +285,9 @@ function Service(props) {
                     />
                 </Grid>
             </Grid>
+
+			
+
         </Grid>
     );
 }
