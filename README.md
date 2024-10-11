@@ -17,7 +17,7 @@ The user interface of the Restreamer for the connection to the [datarhei Core](h
 
 ```
 $ git clone https://github.com/alfaputra27/RestreamerUi.git
-$ cd restreamer-ui
+$ cd RestreamerUi
 $ yarn install
 $ npm run start
 ```
@@ -25,12 +25,6 @@ $ npm run start
 Connect the UI with a [datarhei Core](https://github.com/datarhei/core):
 http://localhost:3000?address=http://core-ip:core-port
 
-### To add/fix translations:
-Locales are located in `src/locals`
-```
-$ npm run i18n-extract:clean
-$ npm run i18n-compile
-```
 
 Restreamer-Ui Original :
 [ORIGINAL](https://github.com/datarhei/restreamer-ui/tree/main)
