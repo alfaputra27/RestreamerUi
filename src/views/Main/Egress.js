@@ -1,5 +1,4 @@
-import React from 'react';
-
+import React, { useState } from 'react';
 import { Trans } from '@lingui/macro';
 import makeStyles from '@mui/styles/makeStyles';
 import DeviceUnknownIcon from '@mui/icons-material/DeviceUnknown';
@@ -56,6 +55,26 @@ const useStyles = makeStyles((theme) => ({
 			color: theme.palette.secondary.main,
 			fontSize: '1.5rem',
 		},
+	},
+	tableContainer: {
+		width: '100%',
+		overflowX: 'auto',
+		marginTop: '20px',
+	},
+	table: {
+		width: '100%',
+		maxWidth: '100%',
+		tableLayout: 'fixed',
+		borderCollapse: 'collapse',
+	},
+	tableCell: {
+		border: '1px solid black',
+		padding: '8px',
+		fontSize: '0.9rem',
+		wordWrap: 'break-word',
+	},
+	tableHeader: {
+		backgroundColor: theme.palette.grey[200],
 	},
 }));
 
@@ -162,6 +181,32 @@ export default function Egress(props) {
 					</Stack>
 				</Stack>
 			</Grid>
+
+			{/* Tabel horizontal untuk informasi tambahan ketika service youtube */}
+			{props.service === 'youtube' && (
+				<Grid item xs={12} className={classes.tableContainer}>
+					<table className={classes.table}>
+						<tbody>
+							<tr>
+								<td className={classes.tableCell}><strong>Jadwal Mulai</strong></td>
+								<td className={classes.tableCell}>11/11/24</td>
+							</tr>
+							<tr>
+								<td className={classes.tableCell}><strong>Jadwal Selesai</strong></td>
+								<td className={classes.tableCell}>12/11/24</td>
+							</tr>
+							<tr>
+								<td className={classes.tableCell}><strong>Content AI</strong></td>
+								<td className={classes.tableCell}>YA</td>
+							</tr>
+							<tr>
+								<td className={classes.tableCell}><strong>Repeating</strong></td>
+								<td className={classes.tableCell}>1 JAM</td>
+							</tr>
+						</tbody>
+					</table>
+				</Grid>
+			)}
 		</Grid>
 	);
 }
